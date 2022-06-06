@@ -35,7 +35,7 @@ class PessoaController{
         const novasInfos = req.body
         try{
             await database.Pessoas.update(novasInfos,{ where: { id:Number(id) } } )
-            const pessoaAtualizada = await database.Pessoas.findOne( {id} )
+            const pessoaAtualizada = await database.Pessoas.findOne( { where: { id:Number(id) } } )
             return res.status(200).json(pessoaAtualizada)
         }catch(error){
             return res.status(500).json(error.message)
@@ -45,7 +45,7 @@ class PessoaController{
     static async apagaPessoa(req,res){
         const {id} = req.params
         try{
-            await database.Pessoas.findByIdAndDelete({id})
+            await database.Pessoas.destroy({ where: { id:Number(id) } })
             return res.status(200).json({ message: `id ${id} deletado` })
         }catch(error){
             return res.status(500).json(error.message)
