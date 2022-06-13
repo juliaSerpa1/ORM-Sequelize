@@ -1,9 +1,17 @@
 const database = require('../models');
 
 class PessoaController{
+    static async pegaPessoasAtivas(req,res){
+        try{
+            const pessoasAtivas  = await database.Pessoas.findAll()
+            return res.status(200).json(pessoasAtivas)
+        } catch(error){
+            return res.status(500).json(error.message)
+        }
+    }
     static async pegaTodasAsPessoas(req,res){
         try{
-            const pegaTodasAsPessoas  = await database.Pessoas.findAll()
+            const pegaTodasAsPessoas  = await database.Pessoas.scope('todos').findAll()
             return res.status(200).json(pegaTodasAsPessoas)
         } catch(error){
             return res.status(500).json(error.message)
@@ -47,6 +55,16 @@ class PessoaController{
         try{
             await database.Pessoas.destroy({ where: { id:Number(id) } })
             return res.status(200).json({ message: `id ${id} deletado` })
+        }catch(error){
+            return res.status(500).json(error.message)
+        }
+    }
+
+    static async restauraPessoa(req,res){
+        const {id} = req.params
+        try{
+            await database.Pessoas.restore({where:{id:Number(id)}})
+            return res.status(200).json({mensage: `id ${id} restaurado`})
         }catch(error){
             return res.status(500).json(error.message)
         }
@@ -105,6 +123,35 @@ class PessoaController{
         try{
             await database.Matriculas.destroy({ where: { id:Number(matriculaId) } })
             return res.status(200).json({ message: `id ${id} deletado` })
+        }catch(error){
+            return res.status(500).json(error.message)
+        }
+    }
+
+    static async pegaMatricula(req,res){
+        const { estudanteId } = req.params
+        try{
+          const pessoa = await database.Pessoas.findOne({where:{id: Number(estudanteId)}})
+          const matriculas = await pessoa.getAulasMatriculadas()
+            return res.status(200).json(matriculas)
+        }catch(error){
+            return res.status(500).json(error.message)
+        }
+    }
+
+
+    static async pegaMatriculasPorTurma(req,res){
+        const { turmaId } = req.params
+        try{
+            const todasAsMatriculas = await database.Matriculas.findAndCountAll({
+                where:{
+                turma_id:Number(turmaId),
+                status: 'confirmado'
+            },
+                limit:20,
+                order:[['estudante_id', 'ASC']]
+        })
+            return res.status(200).json(todasAsMatriculas)
         }catch(error){
             return res.status(500).json(error.message)
         }
